@@ -1,27 +1,19 @@
 require 'nokogiri'
-require 'rake'
-require 'time'
-
-all = []
-
-file_list = FileList['*.xml']
-text_nodes = file_list.map {
-	|f|
-	file = Nokogiri::XML(File.read(f))
-	smses = file.css('smses')
-	all.push(*smses[0].css("sms[address*='5919']"))
-
-}
+require 'date'
 
 ENV['TZ'] = 'US/Eastern'
 
-all.map { 
-	|message|
-	body = message['body']
-	timestamp = Time.at(message['date'].to_i/1000)
-	name = message['type'] == "1" ? "Morgan" : "Preston"
-	
-	print ("%s: %s: %s" % [timestamp.strftime('%A, %B %e, %Y @ %l:%M %p %Z'), name, body])
-	print "\n"
+task :parse do
+  all = FileList['*.xml'].reduce([]) do |s, f|
+    file = Nokogiri::XML File.read(f)
+    sms = file.css('smses').first
+    s + [*sms.css("sms[address*='5919']"]
+  end
 
-}
+  all.each do |message|
+    body = message['body']
+    date = message['date'].to_i
+    timestamp = Time.at date / 1000, (date % 1000) * 1000
+    puts "#{timestamp}: #{message['type'] == "1" ? "Morgan" : "Preston"} => #{body}"
+  end
+end

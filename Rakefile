@@ -7,7 +7,7 @@ task :parse do
   all = FileList['*.xml'].reduce([]) do |s, f|
     file = Nokogiri::XML File.read(f)
     sms = file.css('smses').first
-    s + [*sms.css("sms[address*='5919']"]
+    s + [*sms.css("sms[address*='5919']")]
   end
 
   all.each do |message|
